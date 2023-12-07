@@ -29,7 +29,8 @@ const createMongoDump = (db = 'brancs') => {
 
   const child = spawn('mongodump', [
     `--db=${db}`,
-    `--excludeCollection=dblogs``--archive=${ARCHIVE_PATH}`,
+    `--excludeCollection=dblogs`,
+    `--archive=${ARCHIVE_PATH}`,
     '--gzip',
   ]);
 
