@@ -11,20 +11,18 @@ Basic mongo dump and restore commands, they contain more options you can have a 
 
 const DB_NAME = 'brancs';
 
-// 1. Cron expression for every 5 seconds - */5 * * * * *
-// 2. Cron expression for every night at 00:00 hours (0 0 * * * )
-// Scheduling the backup every day at 00:00
-cron.schedule('0 0 * * *', () => createMongoDump(DB_NAME));
-
 const createMongoDump = (db = 'brancs') => {
+  const today = new Date();
   const FOLDER_PATH = path.join(
     __dirname,
     'backup',
-    new Date().toLocaleDateString()
+    `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`
   );
   const ARCHIVE_PATH = path.join(
     FOLDER_PATH,
-    `${DB_NAME}_${new Date().toLocaleDateString()}.gzip`
+    `${DB_NAME}_${today.getDate()}-${
+      today.getMonth() + 1
+    }-${today.getFullYear()}.gzip`
   );
   if (!fs.existsSync(FOLDER_PATH))
     fs.mkdirSync(FOLDER_PATH, { recursive: true });
@@ -50,3 +48,9 @@ const createMongoDump = (db = 'brancs') => {
     else console.log('Backup is successfull ✅');
   });
 };
+
+// 1. Cron expression for every 5 seconds - */5 * * * * *
+// 2. Cron expression for every night at 00:00 hours (0 0 * * * )
+// Scheduling the backup every day at 00:00
+// cron.schedule('0 0 * * *', () => createMongoDump(DB_NAME));
+createMongoDump();
