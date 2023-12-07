@@ -12,7 +12,7 @@ Basic mongo dump and restore commands, they contain more options you can have a 
 const DB_NAME = 'brancs';
 
 const createMongoDump = (db = 'brancs') => {
-  const today = new Date();
+  const today = new Date(new Date().getTime() + 19800000);
   const FOLDER_PATH = path.join(
     __dirname,
     'backup',
