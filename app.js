@@ -22,14 +22,14 @@ const createMongoDump = (db = 'brancs') => {
     FOLDER_PATH,
     `${DB_NAME}_${today.getDate()}-${
       today.getMonth() + 1
-    }-${today.getFullYear()}.gzip`
+    }-${today.getFullYear()}_${today.getHours()}-${today.getMinutes()}-${today.getSeconds()}.gzip`
   );
   if (!fs.existsSync(FOLDER_PATH))
     fs.mkdirSync(FOLDER_PATH, { recursive: true });
 
   const child = spawn('mongodump', [
     `--db=${db}`,
-    `--archive=${ARCHIVE_PATH}`,
+    `--excludeCollection=dblogs``--archive=${ARCHIVE_PATH}`,
     '--gzip',
   ]);
 
