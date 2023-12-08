@@ -87,5 +87,7 @@ const backupAndSync = (
 // 1. Cron expression for every 5 seconds - */5 * * * * *
 // 2. Cron expression for every night at 00:00 hours (0 0 * * * )
 // Scheduling the backup every day at 00:00
-// cron.schedule('0 0 * * *', () => backupAndSync(DB_NAME, 'brancs-to-gdrive', 'BrancsBackup'));
-backupAndSync(DB_NAME, 'brancs-to-gdrive', 'BrancsBackup');
+cron.schedule('*/5 * * * * *', () =>
+  backupAndSync(DB_NAME, 'brancs-to-gdrive', 'BrancsBackup')
+);
+// backupAndSync(DB_NAME, 'brancs-to-gdrive', 'BrancsBackup');
