@@ -65,10 +65,10 @@ const backupAndSync = (
       ]);
 
       child2.stdout.on('data', (data) => {
-        console.log('stdout:\n', data);
+        console.log('output:\n', data);
       });
       child2.stderr.on('data', (data) => {
-        console.log('stderr:\n', Buffer.from(data).toString());
+        console.log('output:\n', Buffer.from(data).toString());
       });
       child2.on('error', (error) => {
         console.log('error:\n', error);
