@@ -11,7 +11,11 @@ Basic mongo dump and restore commands, they contain more options you can have a 
 
 const DB_NAME = 'brancs';
 
-const createMongoDump = (db = 'brancs') => {
+const backupAndSync = (
+  db = 'brancs',
+  rcloneRemote = 'drive',
+  rcloneDest = 'brancs'
+) => {
   const today = new Date(new Date().getTime() + 19800000);
   const FOLDER_PATH = path.join(
     __dirname,
@@ -46,12 +50,37 @@ const createMongoDump = (db = 'brancs') => {
   child.on('exit', (code, signal) => {
     if (code) console.log('Process exit with code:', code);
     else if (signal) console.log('Process killed with signal:', signal);
-    else console.log('Backup is successfull ✅');
+    else {
+      console.log('Backup is successfull ✅');
+
+      const child2 = spawn('rclone', [
+        'sync',
+        path.join(__dirname, 'backup'),
+        `${rcloneRemote}:${rcloneDest}`,
+      ]);
+
+      child2.stdout.on('data', (data) => {
+        console.log('stdout:\n', data);
+      });
+      child2.stderr.on('data', (data) => {
+        console.log('stderr:\n', Buffer.from(data).toString());
+      });
+      child2.on('error', (error) => {
+        console.log('error:\n', error);
+      });
+      child2.on('exit', (code, signal) => {
+        if (code) console.log('Process exit with code:', code);
+        else if (signal) console.log('Process killed with signal:', signal);
+        else {
+          console.log('Sync with google drive is successfull ✅');
+        }
+      });
+    }
   });
 };
 
 // 1. Cron expression for every 5 seconds - */5 * * * * *
 // 2. Cron expression for every night at 00:00 hours (0 0 * * * )
 // Scheduling the backup every day at 00:00
-// cron.schedule('0 0 * * *', () => createMongoDump(DB_NAME));
-createMongoDump();
+// cron.schedule('0 0 * * *', () => backupAndSync(DB_NAME, 'brancs-to-gdrive', 'BrancsBackup'));
+backupAndSync(DB_NAME, 'brancs-to-gdrive', 'BrancsBackup');
