@@ -16,6 +16,8 @@ const backupAndSync = (
   rcloneRemote = 'drive',
   rcloneDest = 'brancs'
 ) => {
+  console.log('\nStarting mongodb backup...\n');
+
   const today = new Date(new Date().getTime() + 19800000);
   const FOLDER_PATH = path.join(
     __dirname,
@@ -51,12 +53,15 @@ const backupAndSync = (
     if (code) console.log('Process exit with code:', code);
     else if (signal) console.log('Process killed with signal:', signal);
     else {
-      console.log('Backup is successfull ✅');
+      console.log('MongoDB backup is successfull. ✅');
+
+      console.log('\nStarting sync with google drive...\n');
 
       const child2 = spawn('rclone', [
         'sync',
         path.join(__dirname, 'backup'),
         `${rcloneRemote}:${rcloneDest}`,
+        '-v',
       ]);
 
       child2.stdout.on('data', (data) => {
@@ -72,7 +77,7 @@ const backupAndSync = (
         if (code) console.log('Process exit with code:', code);
         else if (signal) console.log('Process killed with signal:', signal);
         else {
-          console.log('Sync with google drive is successfull ✅');
+          console.log('Sync with google drive is successfull. ✅');
         }
       });
     }
