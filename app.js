@@ -11,11 +11,71 @@ Basic mongo dump and restore commands, they contain more options you can have a 
 
 const DB_NAME = 'brancs';
 const RCLONE_REMOTE = 'brancs';
+const RCLONE_DEST = 'BackUpBrancs';
 
-const backupAndSync = (
-  db = 'brancs',
-  rcloneRemote = 'drive',
-  rcloneDest = 'brancs'
+// syncs the files in backup directory with google drive folder using rclone
+const sync = (rcloneRemote = RCLONE_REMOTE, rcloneDest = RCLONE_DEST) => {
+  console.log('\nStarting sync with google drive...\n');
+
+  const child = spawn('rclone', [
+    'sync',
+    path.join(__dirname, 'backup'),
+    `${rcloneRemote}:${rcloneDest}`,
+    '-v',
+  ]);
+
+  child.stdout.on('data', (data) => {
+    console.log('output:\n', data);
+  });
+  child.stderr.on('data', (data) => {
+    console.log('output:\n', Buffer.from(data).toString());
+  });
+  child.on('error', (error) => {
+    console.log('error:\n', error);
+  });
+  child.on('exit', (code, signal) => {
+    if (code) console.log('Process exit with code:', code);
+    else if (signal) console.log('Process killed with signal:', signal);
+    else {
+      console.log('Sync with google drive is successfull. ✅');
+    }
+  });
+};
+
+// copies the pm2 log files and calls the next function to sync files with google drive
+const copyLogs = (rcloneRemote = RCLONE_REMOTE, rcloneDest = RCLONE_DEST) => {
+  console.log('\nStarting pm2 log file copy...\n');
+
+  const LOG_PATH = path.join(__dirname, 'backup', `pm2-logs/`);
+  if (!fs.existsSync(LOG_PATH)) fs.mkdirSync(LOG_PATH, { recursive: true });
+
+  const child = spawn('cp', ['/root/.pm2/logs/brancs*.log', LOG_PATH]);
+
+  child.stdout.on('data', (data) => {
+    console.log('output:\n', data);
+  });
+  child.stderr.on('data', (data) => {
+    console.log('output:\n', Buffer.from(data).toString());
+  });
+  child.on('error', (error) => {
+    console.log('error:\n', error);
+  });
+  child.on('exit', (code, signal) => {
+    if (code) console.log('Process exit with code:', code);
+    else if (signal) console.log('Process killed with signal:', signal);
+    else {
+      console.log('Pm2 log file copy is successfull. ✅');
+
+      sync(rcloneRemote, rcloneDest);
+    }
+  });
+};
+
+// creates db backup gzip file and calls the next function to copy pm2 log files
+const backup = (
+  db = DB_NAME,
+  rcloneRemote = RCLONE_REMOTE,
+  rcloneDest = RCLONE_DEST
 ) => {
   console.log('\nStarting mongodb backup...\n');
 
@@ -51,39 +111,13 @@ const backupAndSync = (
     else {
       console.log('MongoDB backup is successfull. ✅');
 
-      console.log('\nStarting sync with google drive...\n');
-
-      const child2 = spawn('rclone', [
-        'sync',
-        path.join(__dirname, 'backup'),
-        `${rcloneRemote}:${rcloneDest}`,
-        '-v',
-      ]);
-
-      child2.stdout.on('data', (data) => {
-        console.log('output:\n', data);
-      });
-      child2.stderr.on('data', (data) => {
-        console.log('output:\n', Buffer.from(data).toString());
-      });
-      child2.on('error', (error) => {
-        console.log('error:\n', error);
-      });
-      child2.on('exit', (code, signal) => {
-        if (code) console.log('Process exit with code:', code);
-        else if (signal) console.log('Process killed with signal:', signal);
-        else {
-          console.log('Sync with google drive is successfull. ✅');
-        }
-      });
+      copyLogs(rcloneRemote, rcloneDest);
     }
   });
 };
 
 // 1. Cron expression for every 5 seconds - */5 * * * * *
-// 2. Cron expression for every night at 18:30 UTC or 00:00 IST hours (0 0 * * * )
+// 2. Cron expression for every night at 18:30 UTC or 00:00 IST hours - 0 18 * * *
 // Scheduling the backup every day at 00:00
-cron.schedule('30 18 * * *', () =>
-  backupAndSync(DB_NAME, RCLONE_REMOTE, 'BackUpBrancs')
-);
-// backupAndSync(DB_NAME, RCLONE_REMOTE, 'BackUpBrancs');
+cron.schedule('30 18 * * *', () => backup(DB_NAME, RCLONE_REMOTE, RCLONE_DEST));
+// backup(DB_NAME, RCLONE_REMOTE, RCLONE_DEST);
