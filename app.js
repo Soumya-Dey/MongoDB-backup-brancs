@@ -49,7 +49,7 @@ const copyLogs = (rcloneRemote = RCLONE_REMOTE, rcloneDest = RCLONE_DEST) => {
   const LOG_PATH = path.join(__dirname, 'backup', `pm2-logs/`);
   if (!fs.existsSync(LOG_PATH)) fs.mkdirSync(LOG_PATH, { recursive: true });
 
-  const child = spawn('cp', ['/root/.pm2/logs/brancs*.log', LOG_PATH]);
+  const child = spawn('cp', ['-r', '/root/.pm2/logs/', LOG_PATH]);
 
   child.stdout.on('data', (data) => {
     console.log('output:\n', data);
@@ -65,9 +65,8 @@ const copyLogs = (rcloneRemote = RCLONE_REMOTE, rcloneDest = RCLONE_DEST) => {
     else if (signal) console.log('Process killed with signal:', signal);
     else {
       console.log('Pm2 log file copy is successfull. ✅');
-
-      sync(rcloneRemote, rcloneDest);
     }
+    sync(rcloneRemote, rcloneDest);
   });
 };
 
